@@ -27,23 +27,25 @@ class BackupCommand extends Command
         $dbPass = env('DB_PASSWORD');
         $dbHost = env('DB_HOST');
         $fileName = $backupPath . '/' . date('Y-m-d-H-i-s');
-        $backupFile = $fileName . '_database.sql';
-
-        $command = "mysqldump --user={$dbUser} --password={$dbPass} --host={$dbHost} {$dbName} > {$backupFile}";
+        $backupFile = $fileName . '_database.sql.gz';
+        $command = "mysqldump -h $dbHost -u $dbUser --password=$dbPass $dbName | gzip > $backupFile";
         exec($command);
 
         $this->info("Database backup completed: {$backupFile}");
 
         // Storage Backup
-        $storageZip = $fileName . '_storage.zip';
-        // exec("zip -r {$storageZip} " . storage_path('app'));
-        if (File::exists(public_path('storage'))) {
-            exec("zip -r {$storageZip} " . 'public/storage');
-        } else {
-            exec("zip -r {$storageZip} " . 'storage/app/public');
+        if(config('laravelBackup.backup_storage_folder')) {
+            $storageZip = $fileName . '_storage.zip';
+            if (File::exists(public_path('storage'))) {
+                exec("zip -r {$storageZip} " . 'public/storage');
+            } else {
+                exec("zip -r {$storageZip} " . 'storage/app/public');
+            }
+            $this->info("Storage backup completed: {$storageZip}");
         }
+       
 
-        $this->info("Storage backup completed: {$storageZip}");
+        
         $this->deleteOldBackups($backupPath, $keepDays);
     }
 

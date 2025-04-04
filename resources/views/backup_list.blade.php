@@ -10,15 +10,16 @@
 
 <body>
     <div class="container mt-5">
-        
+
         @if (session('success') || session('error'))
-            <div class="alert alert-{{ session('success') ? 'success' : 'danger' }} alert-dismissible fade show" role="alert">
-                {{ session('success')??session('error') }}
+            <div class="alert alert-{{ session('success') ? 'success' : 'danger' }} alert-dismissible fade show"
+                role="alert">
+                {{ session('success') ?? session('error') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
 
             <script>
-                setTimeout(function () {
+                setTimeout(function() {
                     document.querySelector('.alert').style.display = 'none';
                 }, 7000);
             </script>
@@ -26,14 +27,16 @@
         <div class="d-flex justify-content-between align-items-center">
             <h2 class="mb-4">Backup Files</h2>
             <a href="{{ route('laravel-backup.create') }}" class="btn btn-primary mb-3">Create Backup</a>
-            
+
         </div>
         <table class="table table-bordered">
             <thead>
                 <tr>
                     <th>Timestamp</th>
                     <th>Database Backup</th>
-                    <th>Storage Backup</th>
+                    @if (config('laravelBackup.backup_storage_folder'))
+                        <th>Storage Backup</th>
+                    @endif
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -51,16 +54,18 @@
                                 N/A
                             @endif
                         </td>
-                        <td>
-                            @if ($backup['storage'])
-                                <a href="{{ route('laravel-backup.download', ['file' => $backup['storage']]) }}"
-                                    class="btn btn-sm btn-success">
-                                    Download Storage
-                                </a>
-                            @else
-                                N/A
-                            @endif
-                        </td>
+                        @if (config('laravelBackup.backup_storage_folder'))
+                            <td>
+                                @if ($backup['storage'])
+                                    <a href="{{ route('laravel-backup.download', ['file' => $backup['storage']]) }}"
+                                        class="btn btn-sm btn-success">
+                                        Download Storage
+                                    </a>
+                                @else
+                                    N/A
+                                @endif
+                            </td>
+                        @endif
                         <td>
                             <form action="{{ route('laravel-backup.delete', ['timestamp' => $backup['timestamp']]) }}"
                                 method="POST">
